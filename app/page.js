@@ -1,9 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [participants, setParticipants] = useState([]);
@@ -81,71 +78,65 @@ export default function Home() {
           </h1>
         </div>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">
-              Adicionar Participante
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Adicionar Participante
+          </h2>
+          <div className="space-y-4">
+            <input
               type="text"
               placeholder="Nome"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border-gray-200 focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
             />
-            <Input
+            <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="border-gray-200 focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
             />
-            <Button
+            <button
               onClick={addParticipant}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-md"
+              className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 shadow-md"
             >
               Adicionar
-            </Button>
-          </CardContent>
-        </Card>
+            </button>
+          </div>
+        </div>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">
-              Participantes ({participants.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {participants.length > 0 ? (
-              <ul className="divide-y divide-gray-100">
-                {participants.map((p, index) => (
-                  <li key={index} className="py-3 text-gray-700 flex items-center space-x-2">
-                    <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full text-sm font-medium">
-                      {p.name.charAt(0)}
-                    </span>
-                    <span className="flex-1">{p.name}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-center text-gray-500 py-4">
-                Nenhum participante adicionado
-              </p>
-            )}
-            <Button
-              onClick={generatePairs}
-              disabled={participants.length < 3}
-              className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {participants.length < 3
-                ? "Mínimo de 3 participantes"
-                : "Sortear e Enviar Emails"
-              }
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Participantes ({participants.length})
+          </h2>
+          {participants.length > 0 ? (
+            <ul className="divide-y divide-gray-100">
+              {participants.map((p, index) => (
+                <li key={index} className="py-3 text-gray-700 flex items-center space-x-3">
+                  <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full text-sm font-medium">
+                    {p.name.charAt(0)}
+                  </span>
+                  <span className="flex-1">{p.name}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-center text-gray-500 py-4">
+              Nenhum participante adicionado
+            </p>
+          )}
+          <button
+            onClick={generatePairs}
+            disabled={participants.length < 3}
+            className="w-full mt-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {participants.length < 3
+              ? "Mínimo de 3 participantes"
+              : "Sortear e Enviar Emails"
+            }
+          </button>
+        </div>
       </div>
     </div>
   );
