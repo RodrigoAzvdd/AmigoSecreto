@@ -7,6 +7,9 @@ export default function Home() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [secretPairs, setSecretPairs] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentSending, setCurrentSending] = useState('');
+  const [emailStatus, setEmailStatus] = useState({});
 
   const addParticipant = () => {
     if (name && email) {
@@ -17,55 +20,73 @@ export default function Home() {
   };
 
   const generatePairs = async () => {
-    const shuffledParticipants = [...participants];
-    for (let i = shuffledParticipants.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledParticipants[i], shuffledParticipants[j]] = [shuffledParticipants[j], shuffledParticipants[i]];
-    }
+    setIsLoading(true);
+    setEmailStatus({});
 
-    const pairs = {};
-    let isValid = false;
-
-    while (!isValid) {
-      isValid = true;
-      for (let i = 0; i < participants.length; i++) {
-        const participant = participants[i];
-        const secretIndex = (i + 1) % participants.length;
-        if (shuffledParticipants[secretIndex].name === participant.name) {
-          isValid = false;
-          break;
-        }
-        pairs[participant.name] = shuffledParticipants[secretIndex].name;
+    try {
+      const shuffledParticipants = [...participants];
+      for (let i = shuffledParticipants.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledParticipants[i], shuffledParticipants[j]] = [shuffledParticipants[j], shuffledParticipants[i]];
       }
-    }
 
-    setSecretPairs(pairs);
+      const pairs = {};
+      let isValid = false;
 
-    for (const participant of participants) {
-      const secretFriend = pairs[participant.name];
-      await sendEmail(participant.name, participant.email, secretFriend);
+      while (!isValid) {
+        isValid = true;
+        for (let i = 0; i < participants.length; i++) {
+          const participant = participants[i];
+          const secretIndex = (i + 1) % participants.length;
+          if (shuffledParticipants[secretIndex].name === participant.name) {
+            isValid = false;
+            break;
+          }
+          pairs[participant.name] = shuffledParticipants[secretIndex].name;
+        }
+      }
+
+      setSecretPairs(pairs);
+
+      // Envia emails sequencialmente
+      for (const participant of participants) {
+        const secretFriend = pairs[participant.name];
+        setCurrentSending(participant.name);
+
+        try {
+          await sendEmail(participant.name, participant.email, secretFriend);
+          setEmailStatus(prev => ({
+            ...prev,
+            [participant.name]: 'success'
+          }));
+        } catch (error) {
+          setEmailStatus(prev => ({
+            ...prev,
+            [participant.name]: 'error'
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Erro no sorteio:", error);
+    } finally {
+      setIsLoading(false);
+      setCurrentSending('');
     }
   };
 
   const sendEmail = async (name, email, secretFriend) => {
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          name,
-          secretFriend,
-        }),
-      });
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        name,
+        secretFriend,
+      }),
+    });
 
-      if (response.ok) {
-        console.log(`Email enviado para ${name}`);
-      } else {
-        console.error(`Erro ao enviar email para ${name}`);
-      }
-    } catch (error) {
-      console.error("Erro na requisição de envio de email:", error);
+    if (!response.ok) {
+      throw new Error(`Erro ao enviar email para ${name}`);
     }
   };
 
@@ -99,7 +120,8 @@ export default function Home() {
             />
             <button
               onClick={addParticipant}
-              className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 shadow-md"
+              disabled={isLoading}
+              className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50"
             >
               Adicionar
             </button>
@@ -118,6 +140,14 @@ export default function Home() {
                     {p.name.charAt(0)}
                   </span>
                   <span className="flex-1">{p.name}</span>
+                  {emailStatus[p.name] && (
+                    <span className={`text-sm ${emailStatus[p.name] === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                      {emailStatus[p.name] === 'success' ? '✓ Enviado' : '× Erro'}
+                    </span>
+                  )}
+                  {currentSending === p.name && (
+                    <span className="text-sm text-blue-500">Enviando...</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -128,13 +158,16 @@ export default function Home() {
           )}
           <button
             onClick={generatePairs}
-            disabled={participants.length < 3}
-            className="w-full mt-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={participants.length < 3 || isLoading}
+            className="w-full mt-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
-            {participants.length < 3
-              ? "Mínimo de 3 participantes"
-              : "Sortear e Enviar Emails"
-            }
+            {isLoading ? (
+              <span>Enviando emails...</span>
+            ) : participants.length < 3 ? (
+              "Mínimo de 3 participantes"
+            ) : (
+              "Sortear e Enviar Emails"
+            )}
           </button>
         </div>
       </div>
