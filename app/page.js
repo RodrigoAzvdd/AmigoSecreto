@@ -13,6 +13,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [retryQueue, setRetryQueue] = useState([]);
 
+  // All existing functions remain exactly the same
   const addParticipant = () => {
     if (name && email) {
       setParticipants([...participants, { name, email }]);
@@ -129,16 +130,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-green-50 py-12 px-4">
       <div className="max-w-md mx-auto space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Amigo Secreto
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
+            🎄 Amigo Secreto 🎁
           </h1>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -152,8 +153,9 @@ export default function Home() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-red-100">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="mr-2">🎅</span>
             Adicionar Participante
           </h2>
           <div className="space-y-4">
@@ -162,7 +164,7 @@ export default function Home() {
               placeholder="Nome"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-800"
               disabled={isLoading}
             />
             <input
@@ -170,43 +172,44 @@ export default function Home() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-800"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
               disabled={isLoading}
             />
             <button
               onClick={addParticipant}
               disabled={isLoading || !name || !email}
-              className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50"
+              className="w-full py-2 bg-gradient-to-r from-red-500 to-green-500 hover:from-red-600 hover:to-green-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50"
             >
               Adicionar
             </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="mr-2">🎄</span>
             Participantes ({participants.length})
           </h2>
           {participants.length > 0 ? (
             <ul className="divide-y divide-gray-100">
               {participants.map((p, index) => (
                 <li key={index} className="py-3 text-gray-700 flex items-center space-x-3">
-                  <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full text-sm font-medium">
+                  <span className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-600 rounded-full text-sm font-medium">
                     {p.name.charAt(0)}
                   </span>
                   <span className="flex-1">{p.name}</span>
                   {emailStatus[p.name] && (
                     <span
                       className={`text-sm ${emailStatus[p.name] === 'success'
-                          ? 'text-green-500'
-                          : 'text-red-500'
+                        ? 'text-green-500'
+                        : 'text-red-500'
                         }`}
                     >
                       {emailStatus[p.name] === 'success' ? '✓ Enviado' : '× Erro'}
                     </span>
                   )}
                   {currentSending === p.name && (
-                    <div className="flex items-center text-sm text-blue-500">
+                    <div className="flex items-center text-sm text-red-500">
                       <svg className="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -227,7 +230,7 @@ export default function Home() {
             <button
               onClick={generatePairs}
               disabled={participants.length < 3 || isLoading}
-              className="w-full py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full py-2 bg-gradient-to-r from-red-500 to-green-500 hover:from-red-600 hover:to-green-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isLoading && (
                 <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -239,7 +242,7 @@ export default function Home() {
                 ? "Enviando emails..."
                 : participants.length < 3
                   ? "Mínimo de 3 participantes"
-                  : "Sortear e Enviar Emails"}
+                  : "🎁 Sortear e Enviar Emails"}
             </button>
 
             {retryQueue.length > 0 && (
