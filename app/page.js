@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Home() {
   const [participants, setParticipants] = useState([]);
@@ -47,7 +45,7 @@ export default function Home() {
   };
 
   const generatePairs = async () => {
-    if (isLoading) return; // Prevent multiple clicks
+    if (isLoading) return;
 
     setIsLoading(true);
     setEmailStatus({});
@@ -55,11 +53,33 @@ export default function Home() {
     setRetryQueue([]);
 
     try {
-      // Create pairs with validation
-      const pairs = await createValidPairs();
+      const shuffledParticipants = [...participants];
+      let pairs = {};
+      let isValid = false;
+
+      while (!isValid) {
+        isValid = true;
+        for (let i = shuffledParticipants.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledParticipants[i], shuffledParticipants[j]] = [
+            shuffledParticipants[j],
+            shuffledParticipants[i],
+          ];
+        }
+
+        for (let i = 0; i < participants.length; i++) {
+          const participant = participants[i];
+          const secretIndex = (i + 1) % participants.length;
+          if (shuffledParticipants[secretIndex].name === participant.name) {
+            isValid = false;
+            break;
+          }
+          pairs[participant.name] = shuffledParticipants[secretIndex].name;
+        }
+      }
+
       setSecretPairs(pairs);
 
-      // Send emails sequentially
       for (const participant of participants) {
         const secretFriend = pairs[participant.name];
         setCurrentSending(participant.name);
@@ -90,39 +110,6 @@ export default function Home() {
     }
   };
 
-  const createValidPairs = () => {
-    return new Promise((resolve) => {
-      const shuffledParticipants = [...participants];
-      let pairs = {};
-      let isValid = false;
-
-      while (!isValid) {
-        isValid = true;
-        // Shuffle array
-        for (let i = shuffledParticipants.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledParticipants[i], shuffledParticipants[j]] = [
-            shuffledParticipants[j],
-            shuffledParticipants[i],
-          ];
-        }
-
-        // Create pairs
-        for (let i = 0; i < participants.length; i++) {
-          const participant = participants[i];
-          const secretIndex = (i + 1) % participants.length;
-          if (shuffledParticipants[secretIndex].name === participant.name) {
-            isValid = false;
-            break;
-          }
-          pairs[participant.name] = shuffledParticipants[secretIndex].name;
-        }
-      }
-
-      resolve(pairs);
-    });
-  };
-
   const sendEmail = async (name, email, secretFriend) => {
     const response = await fetch('/api/send-email', {
       method: 'POST',
@@ -151,10 +138,18 @@ export default function Home() {
         </div>
 
         {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -212,7 +207,10 @@ export default function Home() {
                   )}
                   {currentSending === p.name && (
                     <div className="flex items-center text-sm text-blue-500">
-                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      <svg className="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
                       Enviando...
                     </div>
                   )}
@@ -231,7 +229,12 @@ export default function Home() {
               disabled={participants.length < 3 || isLoading}
               className="w-full py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isLoading && (
+                <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
               {isLoading
                 ? "Enviando emails..."
                 : participants.length < 3
@@ -245,7 +248,12 @@ export default function Home() {
                 disabled={isLoading}
                 className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all duration-200 shadow-md disabled:opacity-50 flex items-center justify-center"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isLoading && (
+                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
                 Tentar Novamente ({retryQueue.length})
               </button>
             )}
