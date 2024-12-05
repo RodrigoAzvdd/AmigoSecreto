@@ -133,9 +133,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-green-50 py-12 px-4">
       <div className="max-w-md mx-auto space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
-            🎄 Amigo Secreto 🎁
-          </h1>
+          <p className="text-4xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
+            <span className='text-black'>🎄</span> Amigo Secreto <span className='text-black'>🎁</span>
+          </p>
         </div>
 
         {error && (
