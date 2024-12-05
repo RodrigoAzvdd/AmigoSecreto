@@ -1,19 +1,27 @@
 import sendgrid from '@sendgrid/mail';
 
-// Configure a API Key do SendGrid a partir da variável de ambiente
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 
 export async function POST(req) {
-    try {
-        // Extrai os dados do corpo da requisição
-        const { email, name, secretFriend } = await req.json();
+  try {
+    const { email, name, secretFriend } = await req.json();
 
-        // Envia o email usando o SendGrid
-        await sendgrid.send({
-            to: email,
-            from: process.env.SENDGRID_EMAIL, // Usando o e-mail da variável de ambiente
-            subject: 'Seu amigo secreto chegou! 🎁',
-            html: `
+    if (!email || !name || !secretFriend) {
+      return new Response(
+        JSON.stringify({
+          error: 'Dados incompletos. Email, nome e amigo secreto são obrigatórios.'
+        }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      }
+      );
+    }
+
+    const msg = {
+      to: email,
+      from: process.env.SENDGRID_EMAIL,
+      subject: 'Seu amigo secreto chegou! 🎁',
+      html: `
               <!DOCTYPE html>
               <html>
               <head>
@@ -44,27 +52,33 @@ export async function POST(req) {
                   </div>
                   <div class="footer">
                     <p>🎄 Boas festas e um ótimo amigo secreto! 🎄</p>
-                    <p><a href="#">Saiba mais sobre Amigo Secreto</a></p>
                   </div>
                 </div>
               </body>
               </html>
             `,
-        });
+    };
 
-        // Responde com sucesso
-        return new Response(JSON.stringify({ message: 'Email enviado com sucesso!' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        // Log detalhado do erro
-        console.error('Erro ao enviar email:', error.response?.body || error);
+    await sendgrid.send(msg);
 
-        // Retorna erro
-        return new Response(JSON.stringify({ error: 'Erro ao enviar o email' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+    return new Response(
+      JSON.stringify({ message: 'Email enviado com sucesso!' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
     }
+    );
+  } catch (error) {
+    console.error('Erro ao enviar email:', error.response?.body || error);
+
+    // Retorna mensagem de erro mais específica
+    const errorMessage = error.response?.body?.errors?.[0]?.message
+      || 'Erro ao enviar o email. Por favor, tente novamente.';
+
+    return new Response(
+      JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    }
+    );
+  }
 }
